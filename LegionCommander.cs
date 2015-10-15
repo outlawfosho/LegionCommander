@@ -50,6 +50,11 @@
         private static float legioncommanderAttackDelay = 0.46f;
         private static float legioncommanderBackswing = 0.64f;
 
+        private static Item blinkDag;
+        private static Item bMail;
+        private static Item armlet;
+        private static Item bkb;
+        private static Item mjol;
 
         public static void Init()
         {
@@ -73,6 +78,7 @@
                 Drawing.OnEndScene += Drawing_OnEndScene;
                 AppDomain.CurrentDomain.DomainUnload += CurrentDomainDomainUnload;
                 Game.OnWndProc += Game_OnWndProc;
+                Player.OnExecuteOrder += Player_OnExecuteAction;
             }
         }
 
@@ -148,8 +154,37 @@
                 loaded = true;
 
                 Console.WriteLine("Jew legioncommander Loaded");
-
+                armlet = null;
+                bMail = null;
+                mjol = null;
+                bkb = null;
+                blinkDag = null;
                 drawAArange();
+            }
+
+            if (armlet == null)
+            {
+                armlet = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Armlet);
+            }
+
+            if (bMail == null)
+            {
+                bMail = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_blade_mail");
+            }
+
+            if (mjol == null)
+            {
+                mjol = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_mjollnir");
+            }
+
+            if (bkb == null)
+            {
+                bkb = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_black_king_bar");
+            }
+
+            if (blinkDag == null)
+            {
+                blinkDag = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_BlinkDagger);
             }
 
             CreepList = ObjectMgr.GetEntities<Creep>()
@@ -305,8 +340,118 @@
             return (float)(Math.Max( Math.Abs(me.FindAngleR() - Utils.DegreeToRadian(me.FindAngleBetween(ObjectMgr.LocalHero.Position))) - 0.69,
                             0) / (0.5 * (1 / 0.03)));
         }
-      
 
+
+
+        static void Player_OnExecuteAction(Player sender, ExecuteOrderEventArgs args)
+        {
+
+            switch (args.Order)
+            {
+
+                case Order.AbilityTarget:
+                    {
+                        var unit = args.Target as Unit;
+                        if (unit != null && args.Ability != null)
+                            TargetSpellCheck(sender, args);
+                        break;
+                    }
+            }
+
+        }
+
+        static void TargetSpellCheck(Player sender, ExecuteOrderEventArgs args)
+        {
+
+            var hero = args.Target as Hero;
+            var realTarget = hero;
+            if (hero != null)
+            {
+                // Check if target is illusion and real hero is near
+                if (hero.IsIllusion)
+                {
+                    realTarget = hero.ReplicateFrom;
+                } 
+
+                    if (realTarget.IsAlive && realTarget.IsVisible)
+                    {
+
+                        if (realTarget.Distance2D(args.Entities.First()) - realTarget.HullRadius < args.Ability.CastRange)
+                        {
+
+                            if (armlet != null)
+                            {
+                                if (!armlet.IsToggled)
+                                {
+                                    armlet.ToggleAbility();
+                                }
+                            }
+                            if (ObjectMgr.LocalHero.Spellbook.SpellW.CanBeCasted())
+                            {
+                                ObjectMgr.LocalHero.Spellbook.SpellW.UseAbility(ObjectMgr.LocalHero);
+                            }
+                            if (bMail != null)
+                            {
+                                bMail.UseAbility();
+                            }
+                            if (bkb != null)
+                            {
+                                bkb.UseAbility();
+                            }
+                            if (mjol != null)
+                            {
+                                mjol.UseAbility(ObjectMgr.LocalHero);
+                            }
+
+                            args.Ability.UseAbility(realTarget);
+                            args.Process = false;
+                            return;
+                        }
+                        else
+                        {
+
+                            if (blinkDag != null && blinkDag.CanBeCasted() && blinkDag.Cooldown == 0f && ObjectMgr.LocalHero.Position.Distance2D(realTarget) <= 1200)
+                            {
+
+                                if (armlet != null)
+                                {
+                                    if (!armlet.IsToggled)
+                                    {
+                                        armlet.ToggleAbility();
+                                    }
+                                }
+                                if (ObjectMgr.LocalHero.Spellbook.SpellW.CanBeCasted())
+                                {
+                                    ObjectMgr.LocalHero.Spellbook.SpellW.UseAbility(ObjectMgr.LocalHero);
+                                }
+
+
+                                if (bMail != null)
+                                {
+                                    bMail.UseAbility();
+                                }
+                                if (bkb != null)
+                                {
+                                    bkb.UseAbility();
+                                }
+                                if (mjol != null)
+                                {
+                                    mjol.UseAbility(ObjectMgr.LocalHero);
+                                }
+
+                                blinkDag.UseAbility(realTarget.Position);
+
+                                args.Ability.UseAbility(realTarget);
+                                args.Process = false;
+                                return;
+                        }
+                    
+                    }
+                }
+            }
+            // Check if target is linkens protected for certain spells
+          
+        }
 
 
         #endregion

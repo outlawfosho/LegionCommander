@@ -162,30 +162,25 @@
                 drawAArange();
             }
 
-            if (armlet == null)
-            {
+           
                 armlet = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Armlet);
-            }
+          
 
-            if (bMail == null)
-            {
+          
                 bMail = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_blade_mail");
-            }
+           
 
-            if (mjol == null)
-            {
+          
                 mjol = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_mjollnir");
-            }
+           
 
-            if (bkb == null)
-            {
+           
                 bkb = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_black_king_bar");
-            }
+            
 
-            if (blinkDag == null)
-            {
+           
                 blinkDag = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_BlinkDagger);
-            }
+            
 
             CreepList = ObjectMgr.GetEntities<Creep>()
                    .Where(
